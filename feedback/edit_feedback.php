@@ -3,7 +3,6 @@ require_once '../db_connect.php';
 
 $message = $error = '';
 
-// Check if ID is provided
 if (!isset($_GET['id'])) {
     header("Location: feedback_management.php");
     exit();
@@ -11,7 +10,6 @@ if (!isset($_GET['id'])) {
 
 $id = intval($_GET['id']);
 
-// Fetch current feedback record
 $sql = "SELECT id, name, email, feedback, ratings, date FROM meet_feedback WHERE id = ?";
 $stmt = $conn->prepare($sql);
 

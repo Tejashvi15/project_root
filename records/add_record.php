@@ -1,18 +1,17 @@
 <?php
-// add_record.php - Form to add a new meeting record
+
 require_once '../db_connect.php';
 
 $message = $error = '';
 
-// Fetch all available rooms with their appIds for dropdown
 $sql = "SELECT roomName, appId FROM meet_room ORDER BY roomName";
 $rooms = $conn->query($sql);
 
-// Process form submission
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $record = trim($_POST['record']);
     $appId = $_POST['appId'];
-    $date = date('Y-m-d'); // Current date as default
+    $date = date('Y-m-d'); 
     
     if (empty($record)) {
         $error = "Record content is required";
@@ -24,7 +23,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         
         if ($stmt->execute()) {
             $message = "Meeting record added successfully";
-            // Reset form
+            
             $record = '';
             $appId = '';
         } else {

@@ -1,10 +1,10 @@
 <?php
-// edit_record.php - Form to edit an existing meeting record
+
 require_once '../db_connect.php';
 
 $message = $error = '';
 
-// Check if ID is provided
+
 if (!isset($_GET['id'])) {
     header("Location: record_management.php");
     exit();
@@ -12,7 +12,7 @@ if (!isset($_GET['id'])) {
 
 $id = $_GET['id'];
 
-// Fetch current record data
+
 $sql = "SELECT id, record, appId, date FROM meet_records WHERE id = ?";
 $stmt = $conn->prepare($sql);
 
@@ -32,8 +32,8 @@ if ($stmt === false) {
     $stmt->close();
 }
 
-// Fetch available meeting rooms or appIds
-$sql_rooms = "SELECT DISTINCT appId FROM meet_records"; // Adjust if there's a separate table like 'meeting_rooms'
+
+$sql_rooms = "SELECT DISTINCT appId FROM meet_records"; 
 $rooms = $conn->query($sql_rooms);
 
 if ($rooms === false) {

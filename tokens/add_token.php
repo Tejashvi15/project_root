@@ -1,12 +1,12 @@
 <?php
-// add_token.php - Add a new meeting token
+
 require_once '../db_connect.php';
 
 $message = $error = '';
 $name = $appId = $token = $user_joined = $user_info = $reset_date = $is_used = $email = '';
 
 
-// Process form submission
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $name = trim($_POST['name']);
     $appId = trim($_POST['appId']);

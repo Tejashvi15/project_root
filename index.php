@@ -1,5 +1,5 @@
 <?php
-// index.php - Main page displaying meet rooms with CRUD operations
+
 require_once 'db_connect.php';
 
 // Delete operation

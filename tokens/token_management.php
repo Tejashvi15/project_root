@@ -1,12 +1,11 @@
 <?php
-// token_management.php - Manage meeting tokens with CRUD operations
+
 require_once '../db_connect.php';
 
-// Delete operation
+
 if (isset($_GET['delete'])) {
     $id = $_GET['delete'];
-    
-    // Check if token is in use
+   
     $check_sql = "SELECT COUNT(*) as count FROM meet_room WHERE meet_token_id = ?";
     $check_stmt = $conn->prepare($check_sql);
     $check_stmt->bind_param("i", $id);
@@ -28,13 +27,11 @@ if (isset($_GET['delete'])) {
         }
         $stmt->close();
     }
-    
-    // Redirect to prevent form resubmission
+
     header("Location: token_management.php");
     exit();
 }
 
-// Fetch all tokens
 $sql = "SELECT id, name, user_joined, user_info, reset_date, is_used, appId, email, token FROM meet_token ORDER BY id";
 $result = $conn->query($sql);
 ?>

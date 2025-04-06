@@ -15,7 +15,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $feedback = trim($_POST['feedback']);
     $ratings = trim($_POST['rating']);
     $record = trim($_POST['record']);
-    $date = date('Y-m-d'); // auto-generated date
+    $date = date('Y-m-d'); 
 
     if (empty($record)) {
         $error = "Record content is required.";

@@ -1,12 +1,12 @@
 <?php
-// edit_token.php - Edit an existing meeting token
+
 require_once '../db_connect.php';
 
 $message = $error = '';
 $name = $appId = $token = $user_joined = $user_info = $reset_date = $is_used = $email = '';
 $token_id = 0;
 
-// Get token ID from URL
+
 if (!isset($_GET['id']) || empty($_GET['id'])) {
     header("Location: token_management.php");
     exit();
@@ -14,7 +14,7 @@ if (!isset($_GET['id']) || empty($_GET['id'])) {
 
 $token_id = intval($_GET['id']);
 
-// Fetch current token data
+
 $sql = "SELECT * FROM meet_token WHERE id = ?";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("i", $token_id);
@@ -29,7 +29,7 @@ if ($result->num_rows === 0) {
 $token_data = $result->fetch_assoc();
 $stmt->close();
 
-// Pre-fill form with data from DB
+
 $name = $token_data['name'];
 $appId = $token_data['appId'];
 $token = $token_data['token'];
@@ -39,7 +39,7 @@ $reset_date = $token_data['reset_date'];
 $is_used = $token_data['is_used'];
 $email = $token_data['email'];
 
-// Process form submission
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $name = trim($_POST['name']);
     $appId = trim($_POST['appId']);
@@ -50,11 +50,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $is_used = trim($_POST['is_used']);
     $email = trim($_POST['email']);
 
-    // Validate inputs
+  
     if (empty($name) || empty($user_joined) || empty($user_info) || empty($reset_date) || empty($is_used) || empty($appId) || empty($email) || empty($token)) {
         $error = "All fields are required";
     } else {
-        // Update token in database
+       
         $sql = "UPDATE meet_token SET name = ?, user_joined = ?, user_info = ?, reset_date = ?, is_used = ?, appId = ?, email = ?, token = ? WHERE id = ?";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param("ssssssssi", $name, $user_joined, $user_info, $reset_date, $is_used, $appId, $email, $token, $token_id);

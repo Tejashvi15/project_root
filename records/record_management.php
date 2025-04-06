@@ -1,8 +1,7 @@
 <?php
-// record_management.php - Manage meeting records with CRUD operations
+
 require_once '../db_connect.php';
 
-// Delete operation
 if (isset($_GET['delete'])) {
     $id = $_GET['delete'];
     
@@ -17,12 +16,10 @@ if (isset($_GET['delete'])) {
     }
     $stmt->close();
     
-    // Redirect to prevent form resubmission
     header("Location: record_management.php");
     exit();
 }
 
-// Fetch all records with room names
 $sql = "SELECT mr.id, mr.record, mr.date, mr.appId
         FROM meet_records mr
         LEFT JOIN meet_room mm ON mr.appId = mm.appId

@@ -1,8 +1,8 @@
 <?php
-// db_connect.php - Database connection file
+
 $servername = "localhost";
 $username = "root";
-$password = ""; // Replace with actual password
+$password = ""; 
 $dbname = "office3";
 
 // Create connection

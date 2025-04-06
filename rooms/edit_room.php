@@ -1,11 +1,11 @@
 <?php
-// edit_room.php - Edit an existing meeting room
+
 require_once '../db_connect.php';
 
 $message = $error = '';
 $roomName = $appId = '';
 
-// Get room ID from URL
+
 if (!isset($_GET['id']) || empty($_GET['id'])) {
     header("Location: ../index.php");
     exit();
@@ -13,11 +13,10 @@ if (!isset($_GET['id']) || empty($_GET['id'])) {
 
 $id = $_GET['id'];
 
-// Fetch all tokens for dropdown
+
 $sql = "SELECT id, name,appId FROM meet_token ORDER BY name";
 $tokens = $conn->query($sql);
 
-// Process form submission
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $roomName = trim($_POST['roomName']);
     $appId = $_POST['appId'];
@@ -25,7 +24,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (empty($roomName)) {
         $error = "Room name is required";
     } else {
-        // Update room
+        
         $sql = "UPDATE meet_room SET roomName = ?, appId = ? WHERE id = ?";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param("ssi", $roomName, $appId, $id);
@@ -39,7 +38,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt->close();
     }
 } else {
-    // Fetch current room data
+    
     $sql = "SELECT roomName, appId FROM meet_room WHERE id = ?";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("i", $id);

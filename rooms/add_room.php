@@ -1,14 +1,14 @@
 <?php
-// add_room.php - Form to add a new meeting room
+
 require_once '../db_connect.php';
 
 $message = $error = '';
 
-// Fetch all tokens for dropdown
+
 $sql = "SELECT appId, name FROM meet_token ORDER BY name"; 
 $tokens = $conn->query($sql);
 
-// Process form submission
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $roomName = trim($_POST['roomName']);
     $appId = $_POST['appId']; 
@@ -16,14 +16,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (empty($roomName)) {
         $error = "Room name is required";
     } else {
-        // Insert new room
+
         $sql = "INSERT INTO meet_room (roomName, appId) VALUES (?, ?)";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param("ss", $roomName, $appId);
         
         if ($stmt->execute()) {
             $message = "Meeting room added successfully";
-            // Reset form
+            
             $roomName = '';
             $appId = '';
         } else {
