@@ -35,7 +35,7 @@ if (isset($_GET['delete'])) {
 }
 
 // Fetch all tokens
-$sql = "SELECT id, name, appId, token, date FROM meet_token ORDER BY id";
+$sql = "SELECT id, name, user_joined, user_info, reset_date, is_used, appId, email, token FROM meet_token ORDER BY id";
 $result = $conn->query($sql);
 ?>
 
@@ -48,21 +48,34 @@ $result = $conn->query($sql);
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         .container { margin-top: 30px; }
-        .btn-action { margin-right: 5px; }
+        .btn-action { margin-right: 1px; }
         .token-text {
             max-width: 300px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
+        .table-container {
+            overflow-x: auto;
+            max-width: 100%;
+            margin-bottom: 20px;
+        }
+        .table th {
+            white-space: nowrap;
+        }
+        .table td {
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-    <div class="d-flex justify-content-center">
-        <h1 class="mb-4 text-success fw-bold">Meeting Token Management</h1>
-    </div>
-
+        <div class="d-flex justify-content-center">
+            <h1 class="mb-4 text-success fw-bold">Meeting Token Management</h1>
+        </div>
         
         <?php if (isset($message)): ?>
             <div class="alert alert-success"><?php echo $message; ?></div>
@@ -74,49 +87,58 @@ $result = $conn->query($sql);
         
         <div class="d-flex justify-content-between mb-3">
             <h2>Meeting Tokens</h2>
-            
         </div>
         
-        <div class="d-flex justify-content-end ">
-        <a href="add_token.php" class="btn btn-primary">Add New Token</a>
+        <div class="d-flex justify-content-end">
+            <a href="add_token.php" class="btn btn-primary">Add New Token</a>
         </div>
-        <br></br>
+        <br>
         
-        <table class="table table-responsive table-bordered table-striped">
-            <thead>
-                <tr>
-                    <th class="bg-primary">ID</th>
-                    <th class="bg-secondary">Name</th>
-                    <th class="bg-success">App ID</th>
-                    <th class="bg-warning">Token</th>
-                    <th class="bg-primary">Date</th>
-                    <th class="bg-light">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php if ($result && $result->num_rows > 0): ?>
-                    <?php while($row = $result->fetch_assoc()): ?>
-                        <tr>
-                            <td><?php echo $row['id']; ?></td>
-                            <td><?php echo htmlspecialchars($row['name']); ?></td>
-                            <td><?php echo htmlspecialchars($row['appId']); ?></td>
-                            <td class="token-text" title="<?php echo htmlspecialchars($row['token']); ?>">
-                                <?php echo htmlspecialchars($row['token']); ?>
-                            </td>
-                            <td><?php echo $row['date']; ?></td>
-                            <td>
-                                <a href="edit_token.php?id=<?php echo $row['id']; ?>" class="btn btn-sm btn-warning btn-action">Edit</a>
-                                <a href="token_management.php?delete=<?php echo $row['id']; ?>" class="btn btn-sm btn-danger btn-action" onclick="return confirm('Are you sure you want to delete this token?')">Delete</a>
-                            </td>
-                        </tr>
-                    <?php endwhile; ?>
-                <?php else: ?>
+        <div class="table-container">
+            <table class="table table-bordered table-striped">
+                <thead>
                     <tr>
-                        <td colspan="6" class="text-center">No meeting tokens found</td>
+                        <th class="bg-primary">ID</th>
+                        <th class="bg-secondary">Name</th>
+                        <th class="bg-primary">User Joined</th>
+                        <th class="bg-secondary">User Info</th>
+                        <th class="bg-success">Reset Date</th>
+                        <th class="bg-warning">Is Used</th>
+                        <th class="bg-success">App ID</th>
+                        <th class="bg-primary">Email</th>
+                        <th class="bg-warning">Token</th>
+                        <th class="bg-light">Actions</th>
                     </tr>
-                <?php endif; ?>
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    <?php if ($result && $result->num_rows > 0): ?>
+                        <?php while($row = $result->fetch_assoc()): ?>
+                            <tr>
+                                <td><?php echo $row['id']; ?></td>
+                                <td title="<?php echo htmlspecialchars($row['name']); ?>"><?php echo htmlspecialchars($row['name']); ?></td>
+                                <td title="<?php echo htmlspecialchars($row['user_joined']); ?>"><?php echo htmlspecialchars($row['user_joined']); ?></td>
+                                <td title="<?php echo htmlspecialchars($row['user_info']); ?>"><?php echo htmlspecialchars($row['user_info']); ?></td>
+                                <td title="<?php echo htmlspecialchars($row['reset_date']); ?>"><?php echo htmlspecialchars($row['reset_date']); ?></td>
+                                <td title="<?php echo htmlspecialchars($row['is_used']); ?>"><?php echo htmlspecialchars($row['is_used']); ?></td>
+                                <td title="<?php echo htmlspecialchars($row['appId']); ?>"><?php echo htmlspecialchars($row['appId']); ?></td>
+                                <td title="<?php echo htmlspecialchars($row['email']); ?>"><?php echo htmlspecialchars($row['email']); ?></td>
+                                <td class="token-text" title="<?php echo htmlspecialchars($row['token']); ?>">
+                                    <?php echo htmlspecialchars($row['token']); ?>
+                                </td>
+                                <td>
+                                    <a href="edit_token.php?id=<?php echo $row['id']; ?>" class="btn btn-sm btn-warning btn-action">Edit</a>
+                                    <a href="token_management.php?delete=<?php echo $row['id']; ?>" class="btn btn-sm btn-danger btn-action" onclick="return confirm('Are you sure you want to delete this token?')">Delete</a>
+                                </td>
+                            </tr>
+                        <?php endwhile; ?>
+                    <?php else: ?>
+                        <tr>
+                            <td colspan="10" class="text-center">No meeting tokens found</td>
+                        </tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
         
         <div class="mt-4">
             <a href="../index.php" class="btn btn-secondary">Back to Meeting Rooms</a>

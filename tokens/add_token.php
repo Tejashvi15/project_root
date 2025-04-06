@@ -3,21 +3,27 @@
 require_once '../db_connect.php';
 
 $message = $error = '';
-$name = $appId = $token = '';
+$name = $appId = $token = $user_joined = $user_info = $reset_date = $is_used = $email = '';
+
 
 // Process form submission
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $name = trim($_POST['name']);
     $appId = trim($_POST['appId']);
     $token = trim($_POST['token']);
+    $user_joined = trim($_POST['user_joined']);
+    $user_info = trim($_POST['user_info']);
+    $reset_date = trim($_POST['reset_date']);
+    $is_used = trim($_POST['is_used']);
+    $email = trim($_POST['email']);
     
-    if (empty($name) || empty($appId) || empty($token)) {
+    if (empty($name) || empty($appId) || empty($token) || empty($user_info) || empty($user_joined) || empty($reset_date) || empty($is_used) || empty($email)) {
         $error = "All fields are required";
     } else {
         // Insert new token
-        $sql = "INSERT INTO meet_token (name, appId, token) VALUES (?, ?, ?)";
+        $sql = "INSERT INTO meet_token (name, user_joined, user_info, reset_date, is_used, email, appId, token) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         $stmt = $conn->prepare($sql);
-        $stmt->bind_param("sss", $name, $appId, $token);
+        $stmt->bind_param("ssssssss", $name, $user_joined, $user_info, $reset_date, $is_used, $email, $appId, $token);
         
         if ($stmt->execute()) {
             $message = "Meeting token added successfully";
@@ -59,16 +65,42 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             </div>
             
             <div class="mb-3">
-                <label for="appId" class="form-label">App ID</label>
-                <input type="text" class="form-control" id="appId" name="appId" value="<?php echo htmlspecialchars($appId); ?>" required>
+                <label for="user_joined" class="form-label">User Joined</label>
+                <input type="text" class="form-control" id="user_joined" name="user_joined" value="<?php echo htmlspecialchars($user_joined); ?>" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="user_info" class="form-label">User Info</label>
+                <textarea class="form-control" id="user_info" name="user_info" rows="5" required><?php echo htmlspecialchars($user_info); ?></textarea>
+            </div>
+
+            <div class="mb-3">
+                <label for="reset_date" class="form-label">Reset Date</label>
+                <textarea class="form-control" id="reset_date" name="reset_date" rows="5" required><?php echo htmlspecialchars($reset_date); ?></textarea>
+            </div>
+
+            <div class="mb-3">
+                <label for="is_used" class="form-label">Is Used</label>
+                <textarea class="form-control" id="is_used" name="is_used" rows="5" required><?php echo htmlspecialchars($is_used); ?></textarea>
+                
+            </div>
+
+            <div class="mb-3">
+                <label for="appId" class="form-label">App Id</label>
+                <textarea class="form-control" id="appId" name="appId" rows="5" required><?php echo htmlspecialchars($appId); ?></textarea>
                 <div class="form-text">Format: vpaas-magic-cookie-XXXXXXXXXXXXX</div>
+            </div>
+            
+            <div class="mb-3">
+                <label for="email" class="form-label">Email</label>
+                <textarea class="form-control" id="email" name="email" rows="5" required><?php echo htmlspecialchars($email); ?></textarea>
             </div>
             
             <div class="mb-3">
                 <label for="token" class="form-label">Token</label>
                 <textarea class="form-control" id="token" name="token" rows="5" required><?php echo htmlspecialchars($token); ?></textarea>
             </div>
-            
+
             <button type="submit" class="btn btn-primary">Add Token</button>
             <a href="token_management.php" class="btn btn-secondary">Cancel</a>
         </form>

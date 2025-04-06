@@ -22,9 +22,9 @@ if (isset($_GET['delete'])) {
 }
 
 // Fetch all meeting rooms with token names
-$sql = "SELECT mr.id, mr.roomName, mr.meet_token_id, mt.name as token_name 
-        FROM meet_room mr 
-        LEFT JOIN meet_token mt ON mr.meet_token_id = mt.id 
+$sql = "SELECT mr.id, mr.roomName, mr.appId 
+        FROM meet_room mr          
+        LEFT JOIN meet_token mt ON mr.appId = mt.appId          
         ORDER BY mr.id";
 $result = $conn->query($sql);
 ?>
@@ -69,8 +69,7 @@ $result = $conn->query($sql);
                 <tr>
                     <th class="bg-primary">ID</th>
                     <th class="bg-secondary">Room Name</th>
-                    <th class="bg-info">Token ID</th>
-                    <th class="bg-success">Token Name</th>
+                    <th class="bg-info">AppId</th>
                     <th class="bg-warning">Actions</th>
                 </tr>
             </thead>
@@ -80,8 +79,7 @@ $result = $conn->query($sql);
                         <tr>
                             <td><?php echo $row['id']; ?></td>
                             <td><?php echo htmlspecialchars($row['roomName']); ?></td>
-                            <td><?php echo $row['meet_token_id']; ?></td>
-                            <td><?php echo htmlspecialchars($row['token_name'] ?? 'N/A'); ?></td>
+                            <td><?php echo htmlspecialchars($row['appId']); ?></td>
                             <td>
                                 <a href="rooms/edit_room.php?id=<?php echo $row['id']; ?>" class="btn btn-sm btn-warning btn-action">Edit</a>
                                 <a href="index.php?delete=<?php echo $row['id']; ?>" class="btn btn-sm btn-danger btn-action" onclick="return confirm('Are you sure you want to delete this room?')">Delete</a>
@@ -97,7 +95,13 @@ $result = $conn->query($sql);
         </table>
         
         <div class="mt-4">
-            <a href="tokens/token_management.php" class="btn btn-secondary">Manage Meeting Tokens</a>
+            <a href="tokens/token_management.php" class="btn btn-success">Manage Meeting Tokens</a>
+        </div>
+        <div class="mt-4">
+            <a href="records/record_management.php" class="btn btn-success">Manage Meeting Records</a>
+        </div>
+        <div class="mt-4">
+            <a href="feedback/feedback_management.php" class="btn btn-success">Manage Meeting FeedBack</a>
         </div>
     </div>
 
