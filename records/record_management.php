@@ -4,26 +4,39 @@ require_once '../db_connect.php';
 
 if (isset($_GET['delete'])) {
     $id = $_GET['delete'];
-    
+
     $sql = "DELETE FROM meet_records WHERE id = ?";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("i", $id);
-    
+
     if ($stmt->execute()) {
         $message = "Meeting record deleted successfully";
     } else {
         $error = "Error deleting meeting record: " . $conn->error;
     }
     $stmt->close();
-    
+
     header("Location: record_management.php");
     exit();
 }
 
+// Pagination setup
+$limit = 25;
+$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+if ($page < 1) $page = 1;
+$offset = ($page - 1) * $limit;
+
+$total_sql = "SELECT COUNT(*) AS total FROM meet_records";
+$total_result = $conn->query($total_sql);
+$total_row = $total_result->fetch_assoc();
+$total_records = $total_row['total'];
+$total_pages = ceil($total_records / $limit);
+
 $sql = "SELECT mr.id, mr.record, mr.date, mr.appId
         FROM meet_records mr
         LEFT JOIN meet_room mm ON mr.appId = mm.appId
-        ORDER BY mr.id";
+        ORDER BY mr.id
+        LIMIT $limit OFFSET $offset";
 $result = $conn->query($sql);
 ?>
 
@@ -50,24 +63,21 @@ $result = $conn->query($sql);
         <div class="d-flex justify-content-center">
             <h1 class="mb-4 text-success fw-bold">Meeting Record Management</h1>
         </div>
-        
+
         <?php if (isset($message)): ?>
             <div class="alert alert-success"><?php echo $message; ?></div>
         <?php endif; ?>
-        
+
         <?php if (isset($error)): ?>
             <div class="alert alert-danger"><?php echo $error; ?></div>
         <?php endif; ?>
-        
+
         <div class="d-flex justify-content-between mb-3">
             <h2>Meeting Records</h2>
         </div>
-        
-        <div class="d-flex justify-content-end">
-            <a href="add_record.php" class="btn btn-primary">Add New Record</a>
-        </div>
-        <br></br>
-        
+
+        <br>
+
         <table class="table table-responsive table-bordered table-striped">
             <thead>
                 <tr>
@@ -89,19 +99,31 @@ $result = $conn->query($sql);
                             </td>
                             <td><?php echo $row['date']; ?></td>
                             <td>
-                                <a href="edit_record.php?id=<?php echo $row['id']; ?>" class="btn btn-sm btn-warning btn-action">Edit</a>
                                 <a href="record_management.php?delete=<?php echo $row['id']; ?>" class="btn btn-sm btn-danger btn-action" onclick="return confirm('Are you sure you want to delete this record?')">Delete</a>
                             </td>
                         </tr>
                     <?php endwhile; ?>
                 <?php else: ?>
                     <tr>
-                        <td colspan="6" class="text-center">No meeting records found</td>
+                        <td colspan="5" class="text-center">No meeting records found</td>
                     </tr>
                 <?php endif; ?>
             </tbody>
         </table>
-        
+
+        <!-- Pagination -->
+        <?php if ($total_pages > 1): ?>
+            <nav>
+                <ul class="pagination justify-content-center mt-4">
+                    <?php for ($i = 1; $i <= $total_pages; $i++): ?>
+                        <li class="page-item <?php if ($i == $page) echo 'active'; ?>">
+                            <a class="page-link" href="record_management.php?page=<?php echo $i; ?>"><?php echo $i; ?></a>
+                        </li>
+                    <?php endfor; ?>
+                </ul>
+            </nav>
+        <?php endif; ?>
+
         <div class="mt-4">
             <a href="../index.php" class="btn btn-secondary">Back to Meeting Rooms</a>
         </div>

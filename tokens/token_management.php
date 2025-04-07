@@ -2,37 +2,68 @@
 
 require_once '../db_connect.php';
 
-
+// Delete operation
 if (isset($_GET['delete'])) {
     $id = $_GET['delete'];
-   
-    $check_sql = "SELECT COUNT(*) as count FROM meet_room WHERE meet_token_id = ?";
-    $check_stmt = $conn->prepare($check_sql);
-    $check_stmt->bind_param("i", $id);
-    $check_stmt->execute();
-    $check_result = $check_stmt->get_result();
-    $check_row = $check_result->fetch_assoc();
+
     
-    if ($check_row['count'] > 0) {
-        $error = "Cannot delete token because it's used by " . $check_row['count'] . " meeting room(s)";
-    } else {
-        $sql = "DELETE FROM meet_token WHERE id = ?";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("i", $id);
-        
-        if ($stmt->execute()) {
-            $message = "Meeting token deleted successfully";
+    $app_stmt = $conn->prepare("SELECT appId FROM meet_token WHERE id = ?");
+    $app_stmt->bind_param("i", $id);
+    $app_stmt->execute();
+    $app_result = $app_stmt->get_result();
+    $app_row = $app_result->fetch_assoc();
+    $app_stmt->close();
+
+    if ($app_row) {
+        $appId = $app_row['appId'];
+
+        $check_sql = "SELECT COUNT(*) as count FROM meet_room WHERE appId = ?";
+        $check_stmt = $conn->prepare($check_sql);
+        $check_stmt->bind_param("s", $appId);
+        $check_stmt->execute();
+        $check_result = $check_stmt->get_result();
+        $check_row = $check_result->fetch_assoc();
+        $check_stmt->close();
+
+        if ($check_row['count'] > 0) {
+            $error = "Cannot delete token because it's used by " . $check_row['count'] . " meeting room(s)";
         } else {
-            $error = "Error deleting meeting token: " . $conn->error;
+            $sql = "DELETE FROM meet_token WHERE id = ?";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("i", $id);
+
+            if ($stmt->execute()) {
+                $message = "Meeting token deleted successfully";
+            } else {
+                $error = "Error deleting meeting token: " . $conn->error;
+            }
+            $stmt->close();
         }
-        $stmt->close();
+    } else {
+        $error = "Token not found!";
     }
 
     header("Location: token_management.php");
     exit();
 }
 
-$sql = "SELECT id, name, user_joined, user_info, reset_date, is_used, appId, email, token FROM meet_token ORDER BY id";
+
+// Pagination settings
+$limit = 25;
+$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+if ($page < 1) $page = 1;
+$offset = ($page - 1) * $limit;
+
+$total_sql = "SELECT COUNT(*) AS total FROM meet_token";
+$total_result = $conn->query($total_sql);
+$total_row = $total_result->fetch_assoc();
+$total_records = $total_row['total'];
+$total_pages = ceil($total_records / $limit);
+
+$sql = "SELECT id, name, user_joined, user_info, reset_date, is_used, appId, email, token 
+        FROM meet_token 
+        ORDER BY id 
+        LIMIT $limit OFFSET $offset";
 $result = $conn->query($sql);
 ?>
 
@@ -66,6 +97,10 @@ $result = $conn->query($sql);
             text-overflow: ellipsis;
             white-space: nowrap;
         }
+        .user-joined-warning {
+            background-color: #ff0000 !important;
+            color: white !important;
+        }
     </style>
 </head>
 <body>
@@ -73,24 +108,24 @@ $result = $conn->query($sql);
         <div class="d-flex justify-content-center">
             <h1 class="mb-4 text-success fw-bold">Meeting Token Management</h1>
         </div>
-        
+
         <?php if (isset($message)): ?>
             <div class="alert alert-success"><?php echo $message; ?></div>
         <?php endif; ?>
-        
+
         <?php if (isset($error)): ?>
             <div class="alert alert-danger"><?php echo $error; ?></div>
         <?php endif; ?>
-        
+
         <div class="d-flex justify-content-between mb-3">
             <h2>Meeting Tokens</h2>
         </div>
-        
+
         <div class="d-flex justify-content-end">
             <a href="add_token.php" class="btn btn-primary">Add New Token</a>
         </div>
         <br>
-        
+
         <div class="table-container">
             <table class="table table-bordered table-striped">
                 <thead>
@@ -113,10 +148,21 @@ $result = $conn->query($sql);
                             <tr>
                                 <td><?php echo $row['id']; ?></td>
                                 <td title="<?php echo htmlspecialchars($row['name']); ?>"><?php echo htmlspecialchars($row['name']); ?></td>
-                                <td title="<?php echo htmlspecialchars($row['user_joined']); ?>"><?php echo htmlspecialchars($row['user_joined']); ?></td>
+                                <?php
+                                $userJoinedClass = '';
+                                $userJoinedValue = trim($row['user_joined']);
+                                
+                                if ($userJoinedValue !== '' && $userJoinedValue !== null) {
+                                    if (floatval($userJoinedValue) > 20) {
+                                        $userJoinedClass = 'user-joined-warning';
+                                    }
+                                }
+                                
+                                ?>
+                                <td class="<?php echo $userJoinedClass; ?>" title="<?php echo htmlspecialchars($row['user_joined']); ?>"><?php echo htmlspecialchars($row['user_joined']); ?></td>
                                 <td title="<?php echo htmlspecialchars($row['user_info']); ?>"><?php echo htmlspecialchars($row['user_info']); ?></td>
                                 <td title="<?php echo htmlspecialchars($row['reset_date']); ?>"><?php echo htmlspecialchars($row['reset_date']); ?></td>
-                                <td title="<?php echo htmlspecialchars($row['is_used']); ?>"><?php echo htmlspecialchars($row['is_used']); ?></td>
+                                <td class="<?php echo $isUsedClass; ?>" title="<?php echo htmlspecialchars($row['is_used']); ?>"><?php echo htmlspecialchars($row['is_used']); ?></td>
                                 <td title="<?php echo htmlspecialchars($row['appId']); ?>"><?php echo htmlspecialchars($row['appId']); ?></td>
                                 <td title="<?php echo htmlspecialchars($row['email']); ?>"><?php echo htmlspecialchars($row['email']); ?></td>
                                 <td class="token-text" title="<?php echo htmlspecialchars($row['token']); ?>">
@@ -136,7 +182,20 @@ $result = $conn->query($sql);
                 </tbody>
             </table>
         </div>
-        
+
+        <!-- Pagination -->
+        <?php if ($total_pages > 1): ?>
+            <nav>
+                <ul class="pagination justify-content-center mt-4">
+                    <?php for ($i = 1; $i <= $total_pages; $i++): ?>
+                        <li class="page-item <?php if ($i == $page) echo 'active'; ?>">
+                            <a class="page-link" href="token_management.php?page=<?php echo $i; ?>"><?php echo $i; ?></a>
+                        </li>
+                    <?php endfor; ?>
+                </ul>
+            </nav>
+        <?php endif; ?>
+
         <div class="mt-4">
             <a href="../index.php" class="btn btn-secondary">Back to Meeting Rooms</a>
         </div>

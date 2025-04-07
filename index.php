@@ -16,16 +16,27 @@ if (isset($_GET['delete'])) {
     }
     $stmt->close();
     
-    // Redirect to prevent form resubmission
     header("Location: index.php");
     exit();
 }
 
-// Fetch all meeting rooms with token names
+// Pagination settings
+$limit = 25; 
+$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+if ($page < 1) $page = 1;
+$offset = ($page - 1) * $limit;
+
+$total_sql = "SELECT COUNT(*) AS total FROM meet_room";
+$total_result = $conn->query($total_sql);
+$total_row = $total_result->fetch_assoc();
+$total_records = $total_row['total'];
+$total_pages = ceil($total_records / $limit);
+
 $sql = "SELECT mr.id, mr.roomName, mr.appId 
         FROM meet_room mr          
         LEFT JOIN meet_token mt ON mr.appId = mt.appId          
-        ORDER BY mr.id";
+        ORDER BY mr.id
+        LIMIT $limit OFFSET $offset";
 $result = $conn->query($sql);
 ?>
 
@@ -37,16 +48,15 @@ $result = $conn->query($sql);
     <title>Meeting Room Management</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        
         .container { margin-top: 30px; }
         .btn-action { margin-right: 5px; }
     </style>
 </head>
 <body>
     <div class="container">
-    <div class="d-flex justify-content-center">
-        <h1 class="mb-4 text-secondary fw-bold">Meeting Room Management</h1>
-    </div>
+        <div class="d-flex justify-content-center">
+            <h1 class="mb-4 text-secondary fw-bold">Meeting Room Management</h1>
+        </div>
         
         <?php if (isset($message)): ?>
             <div class="alert alert-success"><?php echo $message; ?></div>
@@ -60,10 +70,16 @@ $result = $conn->query($sql);
             <h2>Meeting Rooms</h2>
         </div>
         
-        <div class="d-flex justify-content-end ">
-            <a href="rooms/add_room.php" class="btn btn-primary">Add New Room</a>
-        </div>
-        <br></br>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="d-flex gap-2">
+        <a href="tokens/token_management.php" class="btn btn-success">Manage Meeting Tokens</a>
+        <a href="records/record_management.php" class="btn btn-success">Manage Meeting Records</a>
+        <a href="feedback/feedback_management.php" class="btn btn-success">Manage Meeting Feedback</a>
+    </div>
+        <a href="rooms/add_room.php" class="btn btn-primary">Add New Room</a>
+    </div>
+
+        <br>
         <table class="table table-responsive table-bordered table-striped">
             <thead>
                 <tr>
@@ -88,21 +104,25 @@ $result = $conn->query($sql);
                     <?php endwhile; ?>
                 <?php else: ?>
                     <tr>
-                        <td colspan="5" class="text-center">No meeting rooms found</td>
+                        <td colspan="4" class="text-center">No meeting rooms found</td>
                     </tr>
                 <?php endif; ?>
             </tbody>
         </table>
+
+        <!-- Pagination -->
+        <?php if ($total_pages > 1): ?>
+            <nav>
+                <ul class="pagination justify-content-center mt-4">
+                    <?php for ($i = 1; $i <= $total_pages; $i++): ?>
+                        <li class="page-item <?php if ($i == $page) echo 'active'; ?>">
+                            <a class="page-link" href="index.php?page=<?php echo $i; ?>"><?php echo $i; ?></a>
+                        </li>
+                    <?php endfor; ?>
+                </ul>
+            </nav>
+        <?php endif; ?>
         
-        <div class="mt-4">
-            <a href="tokens/token_management.php" class="btn btn-success">Manage Meeting Tokens</a>
-        </div>
-        <div class="mt-4">
-            <a href="records/record_management.php" class="btn btn-success">Manage Meeting Records</a>
-        </div>
-        <div class="mt-4">
-            <a href="feedback/feedback_management.php" class="btn btn-success">Manage Meeting FeedBack</a>
-        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>

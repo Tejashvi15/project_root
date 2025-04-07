@@ -102,7 +102,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                             <div class="mb-3">
                                 <label for="user_joined" class="form-label">User Joined</label>
-                                <input type="text" class="form-control" id="user_joined" name="user_joined" value="<?php echo htmlspecialchars($user_joined); ?>" required>
+                                <input type="number" class="form-control" id="user_joined" name="user_joined" value="<?php echo htmlspecialchars($user_joined); ?>" required>
+                                <div class="form-text">Enter the number of users that have joined</div>
                             </div>
 
                             <div class="mb-3">
@@ -112,17 +113,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                             <div class="mb-3">
                                 <label for="reset_date" class="form-label">Reset Date</label>
-                                <input type="text" class="form-control" id="reset_date" name="reset_date" value="<?php echo htmlspecialchars($reset_date); ?>" required>
+                                <input type="date" class="form-control" id="reset_date" name="reset_date" value="<?php echo htmlspecialchars($reset_date); ?>" required>
                             </div>
 
                             <div class="mb-3">
                                 <label for="is_used" class="form-label">Is Used</label>
-                                <input type="text" class="form-control" id="is_used" name="is_used" value="<?php echo htmlspecialchars($is_used); ?>" required>
+                                <select class="form-select" id="is_used" name="is_used" required>
+                                    <option value="yes" <?php echo ($is_used == 'yes') ? 'selected' : ''; ?>>Yes</option>
+                                    <option value="no" <?php echo ($is_used == 'no') ? 'selected' : ''; ?>>No</option>
+                                    <option value="pending" <?php echo ($is_used == 'pending') ? 'selected' : ''; ?>>Pending</option>
+                                </select>
                             </div>
 
                             <div class="mb-3">
                                 <label for="appId" class="form-label">App ID</label>
-                                <input type="text" class="form-control" id="appId" name="appId" value="<?php echo htmlspecialchars($appId); ?>" required>
+                                <input type="text" class="form-control" id="appId" name="appId" value="<?php echo htmlspecialchars($appId); ?>" pattern="vpaas-magic-cookie-[a-zA-Z0-9]+" required>
                                 <div class="form-text">Format: vpaas-magic-cookie-XXXXXXXXXXXXX</div>
                             </div>
 
@@ -133,7 +138,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                             <div class="mb-3">
                                 <label for="token" class="form-label">Token</label>
-                                <input type="text" class="form-control" id="token" name="token" value="<?php echo htmlspecialchars($token); ?>" required>
+                                <textarea class="form-control" id="token" name="token" rows="2" required><?php echo htmlspecialchars($token); ?></textarea>
+                                <div class="form-text">Enter the authentication token</div>
                             </div>
 
                             <div class="d-flex justify-content-between">
@@ -152,5 +158,25 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const resetDateInput = document.getElementById('reset_date');
+        const dateValue = resetDateInput.value;
+        
+        if (dateValue) {
+            try {
+                const dateObj = new Date(dateValue);
+                if (!isNaN(dateObj.getTime())) {
+                    const year = dateObj.getFullYear();
+                    const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+                    const day = String(dateObj.getDate()).padStart(2, '0');
+                    resetDateInput.value = `${year}-${month}-${day}`;
+                }
+            } catch (e) {
+                console.error("Error formatting date:", e);
+            }
+        }
+    });
+    </script>
 </body>
 </html>
