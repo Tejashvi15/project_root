@@ -1,31 +1,31 @@
 <?php
-// add_room.php - Form to add a new meeting room
+
 require_once '../db_connect.php';
 
 $message = $error = '';
 
-// Fetch all tokens for dropdown
-$sql = "SELECT id, name FROM meet_token ORDER BY name";
+
+$sql = "SELECT appId, name FROM meet_token ORDER BY name"; 
 $tokens = $conn->query($sql);
 
-// Process form submission
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $roomName = trim($_POST['roomName']);
-    $token_id = $_POST['token_id'];
+    $appId = $_POST['appId']; 
     
     if (empty($roomName)) {
         $error = "Room name is required";
     } else {
-        // Insert new room
-        $sql = "INSERT INTO meet_room (roomName, meet_token_id) VALUES (?, ?)";
+
+        $sql = "INSERT INTO meet_room (roomName, appId) VALUES (?, ?)";
         $stmt = $conn->prepare($sql);
-        $stmt->bind_param("ss", $roomName, $token_id);
+        $stmt->bind_param("ss", $roomName, $appId);
         
         if ($stmt->execute()) {
             $message = "Meeting room added successfully";
-            // Reset form
+            
             $roomName = '';
-            $token_id = '';
+            $appId = '';
         } else {
             $error = "Error adding meeting room: " . $conn->error;
         }
@@ -62,13 +62,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             </div>
             
             <div class="mb-3">
-                <label for="token_id" class="form-label">Meeting Token</label>
-                <select class="form-select" id="token_id" name="token_id" required>
+                <label for="appId" class="form-label">Meeting Token</label>
+                <select class="form-select" id="appId" name="appId" required>
                     <option value="">Select a token</option>
                     <?php if ($tokens && $tokens->num_rows > 0): ?>
                         <?php while($token = $tokens->fetch_assoc()): ?>
-                            <option value="<?php echo $token['id']; ?>" <?php echo (isset($token_id) && $token_id == $token['id']) ? 'selected' : ''; ?>>
-                                <?php echo htmlspecialchars($token['name']); ?> (ID: <?php echo $token['id']; ?>)
+                            <option value="<?php echo $token['appId']; ?>" <?php echo (isset($appId) && $appId == $token['appId']) ? 'selected' : ''; ?>>
+                                <?php echo htmlspecialchars($token['name']); ?> (AppID: <?php echo $token['appId']; ?>)
                             </option>
                         <?php endwhile; ?>
                     <?php endif; ?>

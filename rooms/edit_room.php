@@ -1,11 +1,11 @@
 <?php
-// edit_room.php - Edit an existing meeting room
+
 require_once '../db_connect.php';
 
 $message = $error = '';
-$roomName = $token_id = '';
+$roomName = $appId = '';
 
-// Get room ID from URL
+
 if (!isset($_GET['id']) || empty($_GET['id'])) {
     header("Location: ../index.php");
     exit();
@@ -13,22 +13,21 @@ if (!isset($_GET['id']) || empty($_GET['id'])) {
 
 $id = $_GET['id'];
 
-// Fetch all tokens for dropdown
-$sql = "SELECT id, name FROM meet_token ORDER BY name";
+
+$sql = "SELECT id, name,appId FROM meet_token ORDER BY name";
 $tokens = $conn->query($sql);
 
-// Process form submission
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $roomName = trim($_POST['roomName']);
-    $token_id = $_POST['token_id'];
+    $appId = $_POST['appId'];
     
     if (empty($roomName)) {
         $error = "Room name is required";
     } else {
-        // Update room
-        $sql = "UPDATE meet_room SET roomName = ?, meet_token_id = ? WHERE id = ?";
+        
+        $sql = "UPDATE meet_room SET roomName = ?, appId = ? WHERE id = ?";
         $stmt = $conn->prepare($sql);
-        $stmt->bind_param("ssi", $roomName, $token_id, $id);
+        $stmt->bind_param("ssi", $roomName, $appId, $id);
         
         if ($stmt->execute()) {
             $message = "Meeting room updated successfully";
@@ -39,8 +38,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt->close();
     }
 } else {
-    // Fetch current room data
-    $sql = "SELECT roomName, meet_token_id FROM meet_room WHERE id = ?";
+    
+    $sql = "SELECT roomName, appId FROM meet_room WHERE id = ?";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("i", $id);
     $stmt->execute();
@@ -49,7 +48,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if ($result->num_rows > 0) {
         $row = $result->fetch_assoc();
         $roomName = $row['roomName'];
-        $token_id = $row['meet_token_id'];
+        $appId = $row['appId'];
     } else {
         $error = "Room not found";
     }
@@ -85,12 +84,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             </div>
             
             <div class="mb-3">
-                <label for="token_id" class="form-label">Meeting Token</label>
-                <select class="form-select" id="token_id" name="token_id" required>
+                <label for="appId" class="form-label">Meeting Token</label>
+                <select class="form-select" id="appId" name="appId" required>
                     <option value="">Select a token</option>
                     <?php if ($tokens && $tokens->num_rows > 0): ?>
                         <?php while($token = $tokens->fetch_assoc()): ?>
-                            <option value="<?php echo $token['id']; ?>" <?php echo ($token_id == $token['id']) ? 'selected' : ''; ?>>
+                            <option value="<?php echo $token['id']; ?>" <?php echo ($appId == $token['id']) ? 'selected' : ''; ?>>
                                 <?php echo htmlspecialchars($token['name']); ?> (ID: <?php echo $token['id']; ?>)
                             </option>
                         <?php endwhile; ?>

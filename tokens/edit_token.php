@@ -1,12 +1,12 @@
 <?php
-// edit_token.php - Edit an existing meeting token
+
 require_once '../db_connect.php';
 
 $message = $error = '';
-$name = $appId = $token = '';
+$name = $appId = $token = $user_joined = $user_info = $reset_date = $is_used = $email = '';
 $token_id = 0;
 
-// Get token ID from URL
+
 if (!isset($_GET['id']) || empty($_GET['id'])) {
     header("Location: token_management.php");
     exit();
@@ -14,7 +14,7 @@ if (!isset($_GET['id']) || empty($_GET['id'])) {
 
 $token_id = intval($_GET['id']);
 
-// Fetch current token data
+
 $sql = "SELECT * FROM meet_token WHERE id = ?";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("i", $token_id);
@@ -29,36 +29,42 @@ if ($result->num_rows === 0) {
 $token_data = $result->fetch_assoc();
 $stmt->close();
 
-// Pre-fill form with current data
+
 $name = $token_data['name'];
 $appId = $token_data['appId'];
 $token = $token_data['token'];
+$user_joined = $token_data['user_joined'];
+$user_info = $token_data['user_info'];
+$reset_date = $token_data['reset_date'];
+$is_used = $token_data['is_used'];
+$email = $token_data['email'];
 
-// Process form submission
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Validate inputs
-    if (empty($_POST['name'])) {
-        $error = "Name is required";
-    } else if (empty($_POST['appId'])) {
-        $error = "App ID is required";
-    } else if (empty($_POST['token'])) {
-        $error = "Token is required";
+    $name = trim($_POST['name']);
+    $appId = trim($_POST['appId']);
+    $token = trim($_POST['token']);
+    $user_joined = trim($_POST['user_joined']);
+    $user_info = trim($_POST['user_info']);
+    $reset_date = trim($_POST['reset_date']);
+    $is_used = trim($_POST['is_used']);
+    $email = trim($_POST['email']);
+
+  
+    if (empty($name) || empty($user_joined) || empty($user_info) || empty($reset_date) || empty($is_used) || empty($appId) || empty($email) || empty($token)) {
+        $error = "All fields are required";
     } else {
-        // Update token in database
-        $name = trim($_POST['name']);
-        $appId = trim($_POST['appId']);
-        $token = trim($_POST['token']);
-        
-        $sql = "UPDATE meet_token SET name = ?, appId = ?, token = ? WHERE id = ?";
+       
+        $sql = "UPDATE meet_token SET name = ?, user_joined = ?, user_info = ?, reset_date = ?, is_used = ?, appId = ?, email = ?, token = ? WHERE id = ?";
         $stmt = $conn->prepare($sql);
-        $stmt->bind_param("sssi", $name, $appId, $token, $token_id);
-        
+        $stmt->bind_param("ssssssssi", $name, $user_joined, $user_info, $reset_date, $is_used, $appId, $email, $token, $token_id);
+
         if ($stmt->execute()) {
             $message = "Token updated successfully";
         } else {
             $error = "Error updating token: " . $conn->error;
         }
-        
+
         $stmt->close();
     }
 }
@@ -77,51 +83,100 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <div class="row">
             <div class="col-md-8 offset-md-2">
                 <h1>Edit Meeting Token</h1>
-                
+
                 <?php if ($message): ?>
                     <div class="alert alert-success"><?php echo $message; ?></div>
                 <?php endif; ?>
-                
+
                 <?php if ($error): ?>
                     <div class="alert alert-danger"><?php echo $error; ?></div>
                 <?php endif; ?>
-                
+
                 <div class="card">
                     <div class="card-body">
                         <form method="post" action="">
                             <div class="mb-3">
-                                <label for="name" class="form-label">Name</label>
+                                <label for="name" class="form-label">Token Name</label>
                                 <input type="text" class="form-control" id="name" name="name" value="<?php echo htmlspecialchars($name); ?>" required>
-                                <div class="form-text">A descriptive name for this token (e.g. "Main Account")</div>
                             </div>
-                            
+
+                            <div class="mb-3">
+                                <label for="user_joined" class="form-label">User Joined</label>
+                                <input type="number" class="form-control" id="user_joined" name="user_joined" value="<?php echo htmlspecialchars($user_joined); ?>" required>
+                                <div class="form-text">Enter the number of users that have joined</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="user_info" class="form-label">User Info</label>
+                                <textarea class="form-control" id="user_info" name="user_info" rows="3" required><?php echo htmlspecialchars($user_info); ?></textarea>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="reset_date" class="form-label">Reset Date</label>
+                                <input type="date" class="form-control" id="reset_date" name="reset_date" value="<?php echo htmlspecialchars($reset_date); ?>" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="is_used" class="form-label">Is Used</label>
+                                <select class="form-select" id="is_used" name="is_used" required>
+                                    <option value="yes" <?php echo ($is_used == 'yes') ? 'selected' : ''; ?>>Yes</option>
+                                    <option value="no" <?php echo ($is_used == 'no') ? 'selected' : ''; ?>>No</option>
+                                    <option value="pending" <?php echo ($is_used == 'pending') ? 'selected' : ''; ?>>Pending</option>
+                                </select>
+                            </div>
+
                             <div class="mb-3">
                                 <label for="appId" class="form-label">App ID</label>
-                                <input type="text" class="form-control" id="appId" name="appId" value="<?php echo htmlspecialchars($appId); ?>" required>
-                                <div class="form-text">The Jitsi Meet App ID (e.g. "vpaas-magic-cookie-...")</div>
+                                <input type="text" class="form-control" id="appId" name="appId" value="<?php echo htmlspecialchars($appId); ?>" pattern="vpaas-magic-cookie-[a-zA-Z0-9]+" required>
+                                <div class="form-text">Format: vpaas-magic-cookie-XXXXXXXXXXXXX</div>
                             </div>
-                            
+
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="email" name="email" value="<?php echo htmlspecialchars($email); ?>" required>
+                            </div>
+
                             <div class="mb-3">
                                 <label for="token" class="form-label">Token</label>
-                                <textarea class="form-control" id="token" name="token" rows="5" required><?php echo htmlspecialchars($token); ?></textarea>
-                                <div class="form-text">The JWT token for authentication</div>
+                                <textarea class="form-control" id="token" name="token" rows="2" required><?php echo htmlspecialchars($token); ?></textarea>
+                                <div class="form-text">Enter the authentication token</div>
                             </div>
-                            
+
                             <div class="d-flex justify-content-between">
-                                <a href="token_management.php?id=<?php echo $token_id; ?>" class="btn btn-secondary">Cancel</a>
+                                <a href="token_management.php" class="btn btn-secondary">Cancel</a>
                                 <button type="submit" class="btn btn-primary">Update Token</button>
                             </div>
                         </form>
                     </div>
                 </div>
-                
+
                 <div class="mt-3">
                     <a href="token_management.php" class="btn btn-link">Back to Token Management</a>
                 </div>
             </div>
         </div>
     </div>
-    
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const resetDateInput = document.getElementById('reset_date');
+        const dateValue = resetDateInput.value;
+        
+        if (dateValue) {
+            try {
+                const dateObj = new Date(dateValue);
+                if (!isNaN(dateObj.getTime())) {
+                    const year = dateObj.getFullYear();
+                    const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+                    const day = String(dateObj.getDate()).padStart(2, '0');
+                    resetDateInput.value = `${year}-${month}-${day}`;
+                }
+            } catch (e) {
+                console.error("Error formatting date:", e);
+            }
+        }
+    });
+    </script>
 </body>
 </html>
